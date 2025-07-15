@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configuración LoRa</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      margin: 2rem; 
+    }
+    .config-section { 
+      display: none; 
+      margin-top: 1rem; 
+      border: 1px solid #ccc; 
+      padding: 1rem; 
+      border-radius: 8px; 
+    }
+    .form-group { 
+      margin-bottom: 1rem; 
+      display: flex;
+      flex-wrap: wrap;
+    }
+    label { 
+      display: flex; 
+      align-items: center;
+      margin: 0.5rem 0;
+      width: 100%;
+    }
+    label > span {
+      display: inline-block;
+      width: 250px; /* Ancho fijo para el texto de la etiqueta */
+    }
+    input[type="text"],
+    input[type="number"] {
+      width: 200px; /* Ancho fijo para los inputs */
+      padding: 0.3rem;
+      box-sizing: border-box;
+    }
+    .radio-group {
+      margin-bottom: 1rem;
+    }
+    .radio-group label {
+      display: inline-flex;
+      width: auto;
+      margin-right: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Configuración de Dispositivos LoRa</h1>
+
+  <form id="loraForm" method="POST" action="/config">
+    <div class="radio-group">
+      <label><input type="radio" name="mode" value="gateway" onclick="showSection('gateway')" required /> Gateway</label>
+      <label><input type="radio" name="mode" value="nodo" onclick="showSection('nodo')" /> Nodo Final</label>
+      <label><input type="radio" name="mode" value="mesh" onclick="showSection('mesh')" /> Mesh</label>
+    </div>
+
+    <div id="common-fields" class="config-section">
+      <label>
+        <span>Nombre del dispositivo:</span>
+        <input type="text" name="device_name" required />
+      </label>
+      <label>
+        <span>Nombre dentro de la red (2 caracteres):</span>
+        <input type="text" name="nombre" maxlength="2" required />
+      </label>
+      <label>
+        <span>Clave de Red de la red (2 caracteres):</span>
+        <input type="text" name="clave" maxlength="2" required />
+      </label>
+      <label>
+        <span>Frecuencia (MHz):</span>
+        <input type="number" name="frecuencia" step="0.001" required />
+      </label>
+      <label>
+        <span>Ancho de banda (kHz):</span>
+        <input type="number" name="bw" required />
+      </label>
+      <label>
+        <span>Potencia de transmisión (dBm):</span>
+        <input type="number" name="power" required />
+      </label>
+      <label>
+        <span>Coding Rate:</span>
+        <input type="text" name="cr" required />
+      </label>
+      <label>
+        <span>Spreading Factor:</span>
+        <input type="number" name="sf" required />
+      </label>
+      <label>
+        <span>Longitud del preámbulo:</span>
+        <input type="number" name="preamble" required />
+      </label>
+      <label>
+        <span>Sync Word:</span>
+        <input type="text" name="syncword" required />
+      </label>
+    </div>
+
+    <div id="gateway" class="config-section">
+      <!-- Sin campos adicionales -->
+    </div>
+
+    <div id="nodo" class="config-section">
+      <label>
+        <span>Nombre del Gateway:</span>
+        <input type="text" name="gateway_name" />
+      </label>
+    </div>
+
+    <div id="mesh" class="config-section">
+      <label>
+        <span>Nombre del Gateway:</span>
+        <input type="text" name="gateway_name_mesh" />
+      </label>
+    </div>
+
+    <button type="submit">Guardar Configuración</button>
+  </form>
+
+  <script>
+    function showSection(mode) {
+      document.getElementById('common-fields').style.display = 'block';
+      document.getElementById('gateway').style.display = 'none';
+      document.getElementById('nodo').style.display = 'none';
+      document.getElementById('mesh').style.display = 'none';
+      document.getElementById(mode).style.display = 'block';
+    }
+
+    document.getElementById("loraForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const jsonData = {};
+      formData.forEach((value, key) => {
+        if (key === "gateway_name" && !value) return;
+        if (key === "gateway_name_mesh" && !value) return;
+        jsonData[key] = value;
+      });
+      
+      fetch("/config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(jsonData),
+      })
+      .then(res => res.ok ? alert("Configuración guardada") : alert("Error al guardar"))
+      .catch(() => alert("Error de conexión"));
+    });
+  </script>
+</body>
+</html>
